@@ -7,7 +7,7 @@ version.source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 include = [
-    # "day01.py",
+    "day01.py",
     "day02.py",
     "day03.py",
 ]
@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [project.scripts]
-# day01 = "day01:main"
+day01 = "day01:main"
 day02 = "day02:main"
 day03 = "day03:main"
 
