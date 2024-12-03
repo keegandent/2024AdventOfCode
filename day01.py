@@ -9,15 +9,22 @@ import sys
 
 
 def main():
-    cols = [[], []]
+    left = {}
+    right = {}
     for line in sys.stdin:
         line = line.rstrip()
         m = re.search(r"(\d+)\s+(\d+)", line)
-        cols[0].append(int(m.group(1)))
-        cols[1].append(int(m.group(2)))
-    cols[0].sort()
-    cols[1].sort()
-    print(sum([abs(a - b) for a, b in zip(cols[0], cols[1])]))
+        l = int(m.group(1))
+        r = int(m.group(2))
+        if l in left:
+            left[l] += 1
+        else:
+            left[l] = 1
+        if r in right:
+            right[r] += 1
+        else:
+            right[r] = 1
+    print(sum([k * v * right[k] for k, v in left.items() if k in right]))
 
 
 if __name__ == "__main__":
