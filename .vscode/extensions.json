@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        "ymotongpoo.licenser",
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-python.isort",
+        "ms-python.black-formatter",
+    ]
+}

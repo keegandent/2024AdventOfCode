@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch]
+version.source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+include = [
+    # "day01.py",
+    "day02.py",
+]
+
+[project]
+dynamic = ["version"]
+name = "aoc"
+description = "Advent of Code 2024"
+readme = "README.md"
+license.file = "LICENSE"
+authors = [
+    { name = "Keegan Dent", email = "keegandent@gmail.com" },
+]
+maintainers = [
+    { name = "Keegan Dent", email = "keegandent@gmail.com" },
+]
+
+classifiers = [
+    "Private :: Do Not Upload",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Programming Language :: Python :: 3 :: Only",
+]
+
+requires-python = ">=3.9"
+dependencies = [
+    "numpy",
+]
+
+[project.scripts]
+# day01 = "day01:main"
+day02 = "day02:main"
+
+[project.optional-dependencies]
+test = [
+]
+dev = [
+    "black",
+    "flake8",
+    "isort",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/keegandent/2024AdventOfCode/"
