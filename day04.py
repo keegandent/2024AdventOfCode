@@ -10,9 +10,6 @@ from itertools import product
 
 import numpy as np
 
-DO = "do()"
-NT = "don't()"
-
 global grid
 
 
