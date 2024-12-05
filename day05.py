@@ -6,6 +6,7 @@
 
 import re
 import sys
+from functools import cmp_to_key
 
 
 def validate(updates: list[int], lo, hi) -> bool:
@@ -30,6 +31,13 @@ def main():
         checks.append((lo, hi))
 
     result = 0
+
+    def compare(a: int, b: int) -> int:
+        for check in checks:
+            if not validate([a, b], *check):
+                return 1
+        return -1
+
     for line in sys.stdin:
         updates = [int(s) for s in re.findall(r"\d+", line)]
         passed = True
@@ -37,7 +45,8 @@ def main():
             if not validate(updates, *check):
                 passed = False
                 break
-        if passed:
+        if not passed:
+            updates = sorted(updates, key=cmp_to_key(compare))
             result += updates[(len(updates) - 1) // 2]
     print(result)
 
