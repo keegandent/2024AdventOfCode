@@ -6,16 +6,16 @@
 
 import io
 import sys
+from concurrent.futures import ProcessPoolExecutor as executor
+from concurrent.futures import as_completed
 
 import numpy as np
 import tqdm
 
-global grid
-
 RIGHT = np.array([[0, 1], [-1, 0]], dtype=int)
 
 
-def is_offgrid(position) -> bool:
+def is_offgrid(grid, position) -> bool:
     return any(
         [
             (position[dim][0] < 0) or (position[dim][0] >= grid.shape[dim])
@@ -24,7 +24,12 @@ def is_offgrid(position) -> bool:
     )
 
 
-def check_path(position, direction, new_obstructions=[]):
+def check_path(
+    grid,
+    position,
+    direction,
+    new_obstructions=[],
+):
     visited = set()
     while True:
         entry = tuple(
@@ -35,7 +40,7 @@ def check_path(position, direction, new_obstructions=[]):
         visited.add(entry)
         while True:
             new_position = position + direction
-            if is_offgrid(new_position):
+            if is_offgrid(grid, new_position):
                 return False
             new_position_tup = tuple([int(pos[0]) for pos in new_position])
             if (
@@ -49,18 +54,21 @@ def check_path(position, direction, new_obstructions=[]):
 
 
 def main():
-    global grid
     lines = sys.stdin.readlines()
     f = io.StringIO("".join([",".join([char for char in line]) for line in lines]))
     grid = np.loadtxt(f, dtype="U1", comments=None, delimiter=",")
     direction = np.array([[-1], [0]], dtype=int)
     position = np.array(np.where(grid == "^"), dtype=int)
     s = 0
-    for coord in tqdm.tqdm(list(np.ndindex(grid.shape))):
-        if grid[coord] != ".":
-            continue
-        if check_path(position, direction, [coord]):
-            s += 1
+
+    with executor() as exe:
+        fs = []
+        for coord in np.ndindex(grid.shape):
+            if grid[coord] != ".":
+                continue
+            fs.append(exe.submit(check_path, grid, position, direction, [coord]))
+        for future in tqdm.tqdm(as_completed(fs), total=len(fs), unit="path"):
+            s += future.result()
     print(s)
 
 
