@@ -9,7 +9,14 @@ import re
 import sys
 from itertools import product
 
-OPSET = [operator.add, operator.mul]
+import tqdm
+
+
+def intcat(a: int, b: int) -> int:
+    return int(f"{a:d}{b:d}")
+
+
+OPSET = [operator.add, operator.mul, intcat]
 
 
 def check_feasibility(result: int, operands: list[int]) -> bool:
@@ -26,7 +33,7 @@ def check_feasibility(result: int, operands: list[int]) -> bool:
 
 def main():
     output = 0
-    for line in sys.stdin:
+    for line in tqdm.tqdm(sys.stdin.readlines()):
         m = re.match(r"^(\d+):\s*(.*?)$", line)
         result = int(m.group(1))
         line = m.group(2)
