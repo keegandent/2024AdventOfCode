@@ -13,13 +13,13 @@ include = [
     "day04.py",
     "day05.py",
     "day06.py",
+    "day07.py",
 ]
 
 [project]
 dynamic = ["version"]
 name = "aoc"
 description = "Advent of Code 2024"
-readme = "README.md"
 license.file = "LICENSE"
 authors = [
     { name = "Keegan Dent", email = "keegandent@gmail.com" },
@@ -47,6 +47,7 @@ day03 = "day03:main"
 day04 = "day04:main"
 day05 = "day05:main"
 day06 = "day06:main"
+day07 = "day07:main"
 
 [project.optional-dependencies]
 test = [
