@@ -29,9 +29,11 @@ def find_antinodes_freq(grid, freq):
     if len(nodes.T) < 2:
         return antinodes
     for n1, n2 in permutations(nodes.T, r=2):
-        antinode = 2 * n2 - n1
-        if not is_offgrid(grid, antinode[:, np.newaxis]):
-            antinodes.add(tuple(antinode))
+        increment = n2 - n1
+        node = n1.copy()
+        while not is_offgrid(grid, node[:, np.newaxis]):
+            antinodes.add(tuple(node))
+            node += increment
     return antinodes
 
 
