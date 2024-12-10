@@ -35,8 +35,7 @@ def get_trailhead_score(trailhead) -> int:
                 if grid[tuple(coord)] == elevation:
                     new_trails.append(trail + [coord])
         trails = new_trails
-    ends = set([tuple(trail[-1]) for trail in trails])
-    return len(ends)
+    return len(trails)
 
 
 def main():
