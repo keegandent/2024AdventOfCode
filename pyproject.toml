@@ -17,6 +17,7 @@ include = [
     "day08.py",
     "day09.py",
     "day10.py",
+    "day11.py",
 ]
 
 [project]
@@ -54,6 +55,7 @@ day07 = "day07:main"
 day08 = "day08:main"
 day09 = "day09:main"
 day10 = "day10:main"
+day11 = "day11:main"
 
 [project.optional-dependencies]
 test = [
