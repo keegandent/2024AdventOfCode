@@ -19,7 +19,8 @@ def offsets():
     return np.vstack([dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]])
 
 
-def is_offgrid(position) -> bool:
+@cache
+def is_offgrid(position: tuple) -> bool:
     global grid
     return any(
         [
@@ -39,7 +40,7 @@ def calculate_region_cost(region_type: str) -> int:
         sides = dict()
         for offset in offsets():
             position = plot + offset
-            if is_offgrid(position) or grid[tuple(position)] != region_type:
+            if is_offgrid(tuple(position)) or grid[tuple(position)] != region_type:
                 sides[tuple(offset)] = 1
 
         candidate_regions = set()
@@ -47,7 +48,9 @@ def calculate_region_cost(region_type: str) -> int:
         # doing region candidacy here to prevent branching in prev loop
         for offset in offsets():
             position = plot + offset
-            if (not is_offgrid(position)) and grid[tuple(position)] == region_type:
+            if (not is_offgrid(tuple(position))) and grid[
+                tuple(position)
+            ] == region_type:
                 try:
                     candidate_regions.add(regions_lu[tuple(position)])
                     for side in sides_lu[tuple(position)]:
