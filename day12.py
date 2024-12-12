@@ -29,16 +29,11 @@ def is_offgrid(position) -> bool:
     )
 
 
-def search_regions(regions: list[dict], position) -> int:
-    for i, d in enumerate(regions):
-        if tuple(position) in d.keys():
-            return i
-    return -1
-
-
 def calculate_region_cost(region_type: str) -> int:
     plots = np.array(np.where(grid == region_type))
-    regions = []
+    regions_lu = {}
+    sides_lu = {}
+    num_regions = 0
     for plot in plots.T:
         # only houses keys for border directions, val is whether "original"
         sides = dict()
@@ -53,31 +48,40 @@ def calculate_region_cost(region_type: str) -> int:
         for offset in offsets():
             position = plot + offset
             if (not is_offgrid(position)) and grid[tuple(position)] == region_type:
-                dict_id = search_regions(regions, position)
-                if dict_id != -1:
-                    candidate_regions.add(dict_id)
-                    for side in regions[dict_id][tuple(position)]:
+                try:
+                    candidate_regions.add(regions_lu[tuple(position)])
+                    for side in sides_lu[tuple(position)]:
                         if side in sides.keys():
                             # not original plot for side
                             sides[side] = 0
+                except KeyError:
+                    pass
 
         if not candidate_regions:
-            regions.append({tuple(plot): sides})
-        else:
-            if len(candidate_regions) > 1:
-                new_dict = {}
-                old_dirs = [regions[i] for i in candidate_regions]
-                for od in old_dirs:
-                    new_dict.update(od)
-                    regions.remove(od)
-                regions.append(new_dict)
-                candidate_regions = set([len(regions) - 1])
-            regions[candidate_regions.pop()][tuple(plot)] = sides
+            candidate_regions.add(num_regions)
+            num_regions += 1
+        elif len(candidate_regions) > 1:
+            new_region = min(candidate_regions)
+            for k, v in regions_lu.items():
+                if v in candidate_regions:
+                    regions_lu[k] = new_region
+            candidate_regions = set([new_region])
+            # we do NOT update num_regions because we don't want to manage indices
+            # empty regions will be pruned at the end
+        regions_lu[tuple(plot)] = candidate_regions.pop()
+        sides_lu[tuple(plot)] = sides
+
+    # invert the regions lookup table
+    regions = {}
+    for k, v in regions_lu.items():
+        if v not in regions:
+            regions[v] = []
+        regions[v].append(k)
 
     cost = 0
-    for region in regions:
+    for region in regions.values():
         area = len(region)
-        sides = sum([sum(s.values()) for s in region.values()])
+        sides = sum([sum(sides_lu[p].values()) for p in region])
         cost += area * sides
     return cost
 
