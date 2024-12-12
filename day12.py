@@ -6,10 +6,17 @@
 
 import io
 import sys
+from functools import cache
 
 import numpy as np
 
 global grid
+
+
+@cache
+def offsets():
+    global grid
+    return np.vstack([dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]])
 
 
 def is_offgrid(position) -> bool:
@@ -22,12 +29,11 @@ def is_offgrid(position) -> bool:
     )
 
 
-def search_regions(regions: list[dict], position) -> set:
-    result = set()
+def search_regions(regions: list[dict], position) -> int:
     for i, d in enumerate(regions):
         if tuple(position) in d.keys():
-            result.add(i)
-    return result
+            return i
+    return -1
 
 
 def calculate_region_cost(region_type: str) -> int:
@@ -36,9 +42,7 @@ def calculate_region_cost(region_type: str) -> int:
     for plot in plots.T:
         # only houses keys for border directions, val is whether "original"
         sides = dict()
-        for offset in np.vstack(
-            [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
-        ):
+        for offset in offsets():
             position = plot + offset
             if is_offgrid(position) or grid[tuple(position)] != region_type:
                 sides[tuple(offset)] = 1
@@ -46,15 +50,13 @@ def calculate_region_cost(region_type: str) -> int:
         candidate_regions = set()
         # determine side uniqueness
         # doing region candidacy here to prevent branching in prev loop
-        for offset in np.vstack(
-            [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
-        ):
+        for offset in offsets():
             position = plot + offset
             if (not is_offgrid(position)) and grid[tuple(position)] == region_type:
                 dict_id = search_regions(regions, position)
-                candidate_regions |= dict_id
-                if dict_id:
-                    for side in regions[dict_id.pop()][tuple(position)]:
+                if dict_id != -1:
+                    candidate_regions.add(dict_id)
+                    for side in regions[dict_id][tuple(position)]:
                         if side in sides.keys():
                             # not original plot for side
                             sides[side] = 0
