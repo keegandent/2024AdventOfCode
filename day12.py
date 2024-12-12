@@ -32,20 +32,30 @@ def search_regions(regions: list[dict], position) -> set:
 
 def calculate_region_cost(region_type: str) -> int:
     type_spots = np.array(np.where(grid == region_type))
-    regions = [dict()]
+    regions = []
     for spot in type_spots.T:
-        perimeter = 0
-        candidates = set([])
+        sides = set()
+        candidates = set()
         for offset in np.vstack(
             [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
         ):
             position = spot + offset
             if is_offgrid(position) or grid[tuple(position)] != region_type:
-                perimeter += 1
-            else:
-                candidates |= search_regions(regions, position)
+                sides.add(tuple(offset))
+
+        orig_sides = sides.copy()
+        for offset in np.vstack(
+            [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
+        ):
+            position = spot + offset
+            if (not is_offgrid(position)) and grid[tuple(position)] == region_type:
+                dict_id = search_regions(regions, position)
+                candidates |= dict_id
+                if dict_id:
+                    sides -= regions[dict_id.pop()][tuple(position)][1]
+
         if not candidates:
-            regions.append({tuple(spot): perimeter})
+            regions.append({tuple(spot): (sides, orig_sides)})
         else:
             if len(candidates) > 1:
                 new_dict = {}
@@ -55,13 +65,13 @@ def calculate_region_cost(region_type: str) -> int:
                     regions.remove(od)
                 regions.append(new_dict)
                 candidates = set([len(regions) - 1])
-            regions[candidates.pop()][tuple(spot)] = perimeter
+            regions[candidates.pop()][tuple(spot)] = (sides, orig_sides)
 
     cost = 0
     for region in regions:
         area = len(region)
-        perimeter = sum(region.values())
-        cost += area * perimeter
+        sides = sum([len(s) for s, _ in region.values()])
+        cost += area * sides
     return cost
 
 
