@@ -31,42 +31,46 @@ def search_regions(regions: list[dict], position) -> set:
 
 
 def calculate_region_cost(region_type: str) -> int:
-    type_spots = np.array(np.where(grid == region_type))
+    plots = np.array(np.where(grid == region_type))
     regions = []
-    for spot in type_spots.T:
+    for plot in plots.T:
+        # only houses keys for border directions, val is whether "original"
         sides = dict()
-        candidates = set()
         for offset in np.vstack(
             [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
         ):
-            position = spot + offset
+            position = plot + offset
             if is_offgrid(position) or grid[tuple(position)] != region_type:
                 sides[tuple(offset)] = 1
 
+        candidate_regions = set()
+        # determine side uniqueness
+        # doing region candidacy here to prevent branching in prev loop
         for offset in np.vstack(
             [dir * np.eye(grid.ndim, dtype=int) for dir in [-1, 1]]
         ):
-            position = spot + offset
+            position = plot + offset
             if (not is_offgrid(position)) and grid[tuple(position)] == region_type:
                 dict_id = search_regions(regions, position)
-                candidates |= dict_id
+                candidate_regions |= dict_id
                 if dict_id:
                     for side in regions[dict_id.pop()][tuple(position)]:
                         if side in sides.keys():
+                            # not original plot for side
                             sides[side] = 0
 
-        if not candidates:
-            regions.append({tuple(spot): sides})
+        if not candidate_regions:
+            regions.append({tuple(plot): sides})
         else:
-            if len(candidates) > 1:
+            if len(candidate_regions) > 1:
                 new_dict = {}
-                old_dirs = [regions[i] for i in candidates]
+                old_dirs = [regions[i] for i in candidate_regions]
                 for od in old_dirs:
                     new_dict.update(od)
                     regions.remove(od)
                 regions.append(new_dict)
-                candidates = set([len(regions) - 1])
-            regions[candidates.pop()][tuple(spot)] = sides
+                candidate_regions = set([len(regions) - 1])
+            regions[candidate_regions.pop()][tuple(plot)] = sides
 
     cost = 0
     for region in regions:
