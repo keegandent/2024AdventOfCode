@@ -7,6 +7,7 @@
 import re
 import sys
 from functools import cache
+from time import sleep
 
 import numpy as np
 
@@ -77,17 +78,16 @@ def main():
     count = 0
     while True:
         grid[...] = 0
-        print(f"Count: {count:>6}")
         for p, v in zip(pos, vel, strict=True):
             p = (count * np.array(v) + np.array(p)) % GRID_SHAPE
             grid[tuple(p)] += 1
         blob = largest_blob()
-        print(f"Largest blob: {blob:>4}")
+        print(f"Count: {count:>6} \tLargest blob: {blob:>4}", end="\r", flush=True)
         if blob > BLOB_THRESHOLD:
-
-            for row in grid:
+            print("\n", end=None)
+            for row in grid.T:
                 print("".join(["#" if p else "." for p in row]))
-        print("", flush=True)
+            print("", flush=True)
         count += 1
 
 
