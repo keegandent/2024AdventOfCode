@@ -20,7 +20,7 @@ def main():
         if "Prize" in line:
             # assume in order
             m = deque(re.findall(r"\w=\+?(-?\d+)", line))
-            [row.append(int(m.popleft())) for row in mat]
+            [row.append(int(1e13) + int(m.popleft())) for row in mat]
             arr = np.array(mat, dtype=int)
             mat = []
             # wanted to do rref but this works ig
@@ -28,9 +28,9 @@ def main():
                 arr[:, :-1],
                 arr[:, -1:],
             ).ravel()
-            if np.any(soln > 100) or np.any(soln < 0):
+            if np.any(soln < 0):
                 continue
-            if np.any(np.abs(soln - soln.round()) > 1e-6):
+            if np.any(np.abs(soln - soln.round()) > 1e-3):
                 continue
             cost += int(round(sum(BUTTON_COSTS * soln)))
 
