@@ -20,6 +20,13 @@ MOVE_MAP = {
     ">": np.array([0, 1], dtype=int),
 }
 
+CHAR_MAP = {
+    "#": "##",
+    "O": "[]",
+    ".": "..",
+    "@": "@.",
+}
+
 
 @cache
 def is_offgrid(position: tuple) -> bool:
@@ -32,18 +39,36 @@ def is_offgrid(position: tuple) -> bool:
     )
 
 
-def attempt_move(pos, move, replace="."):
-    moved = True
+def is_valid_move(pos, move) -> bool:
+    valid = True
     if grid[tuple(pos + move)] == "#":
-        moved = False
-    elif grid[tuple(pos + move)] == "O":
-        moved = np.any(attempt_move(pos + move, move, "O") != pos + move)
+        valid = False
+    elif grid[tuple(pos + move)] in ["[", "]"]:
+        valid = is_valid_move(pos + move, move)
+        if move[0] != 0:
+            appendage = np.array(
+                [
+                    (pos + move)[0],
+                    (pos + move)[1] + (1 if grid[tuple(pos + move)] == "[" else -1),
+                ]
+            )
+            valid &= is_valid_move(appendage, move)
+    return valid
 
-    if moved:
-        grid[tuple(pos + move)] = grid[tuple(pos)]
-        grid[tuple(pos)] = replace
-        return pos + move
-    return pos
+
+def perform_move(pos, move, replace=".") -> None:
+    if grid[tuple(pos + move)] in ["[", "]"]:
+        perform_move(pos + move, move, grid[tuple(pos + move)])
+        if move[0] != 0:
+            appendage = np.array(
+                [
+                    (pos + move)[0],
+                    (pos + move)[1] + (1 if grid[tuple(pos + move)] == "[" else -1),
+                ]
+            )
+            perform_move(appendage, move)
+    grid[tuple(pos + move)] = grid[tuple(pos)]
+    grid[tuple(pos)] = replace
 
 
 def main():
@@ -57,16 +82,23 @@ def main():
             move_lines.append(line.rstrip())
 
     f = io.StringIO(
-        "\n".join([",".join([char for char in line.rstrip()]) for line in grid_lines])
+        "\n".join(
+            [
+                ",".join([char for ch in line.rstrip() for char in CHAR_MAP[ch]])
+                for line in grid_lines
+            ]
+        )
     )
     grid = np.loadtxt(f, dtype="U1", comments=None, delimiter=",")
     moves = np.array([MOVE_MAP[m] for move in move_lines for m in move])
     pos = np.array(np.where(grid == "@"), dtype=int).T[0]
     grid[tuple(pos)] = "."
     for move in moves:
-        pos = attempt_move(pos, move)
+        if is_valid_move(pos, move):
+            perform_move(pos, move)
+            pos = pos + move
 
-    boxes = np.array(np.where(grid == "O"), dtype=int).T
+    boxes = np.array(np.where(grid == "["), dtype=int).T
     print(np.sum(np.array([100, 1]) * boxes))
 
 
