@@ -50,7 +50,7 @@ def calculate_costs(start_cost, start_pos):
             if (
                 not is_offgrid(tuple(pos))
                 and grid[tuple(pos)] != "#"
-                and cost_grid[tuple(pos)] >= cost
+                and cost <= cost_grid[tuple(pos)]
             ):
                 cost_grid[tuple(pos)] = cost
                 heapq.heappush(heap, (cost, *[int(p) for p in pos]))
