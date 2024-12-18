@@ -7,7 +7,6 @@
 import re
 import sys
 from functools import cache
-from time import sleep
 
 import numpy as np
 

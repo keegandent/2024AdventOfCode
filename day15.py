@@ -28,17 +28,6 @@ CHAR_MAP = {
 }
 
 
-@cache
-def is_offgrid(position: tuple) -> bool:
-    global grid
-    return any(
-        [
-            (position[dim] < 0) or (position[dim] >= grid.shape[dim])
-            for dim in range(grid.ndim)
-        ]
-    )
-
-
 def is_valid_move(pos, move) -> bool:
     valid = True
     if grid[tuple(pos + move)] == "#":
