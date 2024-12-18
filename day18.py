@@ -7,6 +7,7 @@
 import heapq
 import re
 import sys
+from collections import deque
 from functools import cache
 
 import numpy as np
@@ -49,7 +50,7 @@ def calculate_costs(start_cost, start_pos):
             if (
                 not is_offgrid(tuple(pos))
                 and grid[tuple(pos)] != "#"
-                and cost_grid[tuple(pos)] > cost
+                and cost_grid[tuple(pos)] >= cost
             ):
                 cost_grid[tuple(pos)] = cost
                 heapq.heappush(heap, (cost, *[int(p) for p in pos]))
@@ -59,17 +60,20 @@ def main():
     global grid
     global cost_grid
     grid = np.full((71, 71), dtype="U1", fill_value=".")
-    for i, line in enumerate(sys.stdin):
-        if i == NUM_OBSTACLES:
-            break
+    blocks = deque([])
+    for line in sys.stdin:
         m = re.findall(r"\d+", line)
-        grid[tuple([int(coord) for coord in m])] = "#"
+        block = tuple([int(coord) for coord in m])
+        grid[block] = "#"
+        blocks.append(block)
     cost_grid = np.full_like(grid, dtype=int, fill_value=(1 << 31) - 1)
     start_pos = np.array([0, 0])
     end_pos = np.array([dim - 1 for dim in grid.shape])
-    calculate_costs(0, start_pos)
-    end_cost = cost_grid[tuple(end_pos)]
-    print(end_cost)
+    while cost_grid[tuple(end_pos)] == (1 << 31) - 1:
+        block = blocks.pop()
+        grid[block] = "."
+        calculate_costs(0, start_pos)
+    print(",".join([str(b) for b in block]))
 
 
 if __name__ == "__main__":
