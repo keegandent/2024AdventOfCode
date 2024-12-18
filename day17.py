@@ -7,8 +7,6 @@
 import re
 import sys
 
-import numpy as np
-
 
 class Processor:
     def _combo_operand(self, operand) -> int:
@@ -60,19 +58,18 @@ class Processor:
         self._program = program
         self._instr_ptr = 0
 
-    def run(self, num_runs: int = None):
+    def run(self, num_outs: int = None):
         while True:
             if self._instr_ptr >= len(self._program) or (
-                num_runs is not None and num_runs == 0
+                num_outs is not None and num_outs == 0
             ):
                 return
             fn = self._INSTR_MAP[self._program[self._instr_ptr]]
             out = fn(self, self._program[self._instr_ptr + 1])
             if out is not None:
                 yield out
-
-            if num_runs is not None:
-                num_runs -= 1
+                if num_outs is not None:
+                    num_outs -= 1
 
 
 def main():
@@ -84,9 +81,18 @@ def main():
         elif "Program" in line:
             m = re.findall(r"\d+", line)
             program = [int(p) for p in m]
-    proc = Processor(registers, program)
-    out = list(proc.run())
-    print(",".join([str(o) for o in out]))
+    rega = 0
+    for o in range(len(program)):
+        rega = rega << 3
+        while True:
+            print(f"\rOutput: {o:>2} \tRegister A: {rega}", end="", file=sys.stderr)
+            proc = Processor([rega, registers[1], registers[2]], program)
+            out = list(proc.run(o + 1))
+            if len(out) == o + 1 and out == program[-(o + 1) :]:
+                break
+            rega += 1
+    print("", file=sys.stderr)
+    print(rega)
 
 
 if __name__ == "__main__":
