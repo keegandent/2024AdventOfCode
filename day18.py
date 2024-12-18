@@ -4,6 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+import heapq
 import re
 import sys
 from functools import cache
@@ -37,19 +38,24 @@ def offsets():
 def calculate_costs(start_cost, start_pos):
     global cost_grid
     cost_grid[tuple(start_pos)] = start_cost
-    for offset in offsets():
-        cost = start_cost + 1
-        pos = start_pos + offset
-        if (
-            not is_offgrid(tuple(pos))
-            and grid[tuple(pos)] != "#"
-            and cost_grid[tuple(pos)] > cost
-        ):
-            calculate_costs(cost, pos)
+    heap = [(start_cost, *[int(p) for p in start_pos])]
+    while heap:
+        h = heapq.heappop(heap)
+        current_cost = h[0]
+        current_pos = np.array(h[1:])
+        for offset in offsets():
+            cost = current_cost + 1
+            pos = current_pos + offset
+            if (
+                not is_offgrid(tuple(pos))
+                and grid[tuple(pos)] != "#"
+                and cost_grid[tuple(pos)] > cost
+            ):
+                cost_grid[tuple(pos)] = cost
+                heapq.heappush(heap, (cost, *[int(p) for p in pos]))
 
 
 def main():
-    sys.setrecursionlimit(int(1e9))
     global grid
     global cost_grid
     grid = np.full((71, 71), dtype="U1", fill_value=".")
