@@ -7,34 +7,38 @@
 import heapq
 import re
 import sys
+from functools import cache
+
+from tqdm import tqdm
 
 global towels
 
 
-def is_possible(pattern: str):
+@cache
+def num_ways(pattern: str):
     if not len(pattern):
-        return True
+        return 1
+    possible_sum = 0
     for size, towel in towels:
-        possible = False
+        possible = 0
         if re.match(towel, pattern) is not None:
-            possible = is_possible(pattern[size:])
-        if possible:
-            break
-    return possible
+            possible = num_ways(pattern[size:])
+        possible_sum += possible
+    return possible_sum
 
 
 def main():
     global towels
     towels = []
     num_possible = 0
-    for line in sys.stdin:
+    for line in tqdm(sys.stdin.readlines()):
         if "," in line:
             [
                 heapq.heappush(towels, (len(towel), towel))
                 for towel in re.findall(r"\w+", line)
             ]
         elif line.rstrip():
-            num_possible += is_possible(line.rstrip())
+            num_possible += num_ways(line.rstrip())
     print(num_possible)
 
 
